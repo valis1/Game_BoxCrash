@@ -220,13 +220,13 @@ local function crashBox()
     	system.vibrate()
 		state=1
 		busy=true
-		transition.to( sprite[8], { x=-100, time=250,
+		transition.to( sprite[8], { x=-100, time=350,
         onComplete = function() sprite[8].isVisible=false end
         } )
-	    transition.to( sprite[9], { y=400, time=250,
+	    transition.to( sprite[9], { y=400, time=350,
         onComplete = function() sprite[9].isVisible=false  end
         } )
-	    transition.to( sprite[10], { y=-200, time=250,
+	    transition.to( sprite[10], { y=-200, time=350,
         onComplete = function() sprite[10].isVisible=false
                                 current_sprite=choise_sprite(boxes)
                                 busy=false
@@ -250,6 +250,9 @@ end
 --=======================================END OF GAME FUNCTIONS=================================
 --=============================================================================================
 
+local function gotoScores()
+	composer.gotoScene("scores",{ time=700, effect="crossFade" })
+end
 
 function scene:create( event )
 
@@ -266,8 +269,8 @@ function scene:create( event )
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    local menuIcon=display.newImageRect(uiGroup,'UI/menu.png',50,50)
-    menuIcon.x=display.contentCenterX -120
+    local menuIcon=display.newImageRect(uiGroup,'UI/menu.png',79,61)
+    menuIcon.x=display.contentCenterX-100
     menuIcon.y=5
 
     local scoreText =display.newText(uiGroup,'Scores: ', display.contentCenterX+20, 0,'UI/DroidSerif-Regular.ttf', 28 )
@@ -275,8 +278,8 @@ function scene:create( event )
     tapText:setFillColor( 0.757, 0.757, 0.757,1 )
     scoreText:setFillColor(  0.757, 0.757, 0.757,1 )
 
-    local speedText=display.newText(uiGroup,'Your Speed: ',display.contentCenterX-20,450,'UI/DroidSerif-Regular.ttf', 28)
-    tapSpeed=display.newText(uiGroup,'0 src/s',display.contentCenterX+100,450,native.systemFont, 28)
+    local speedText=display.newText(uiGroup,'Speed: ',display.contentCenterX-20,display.contentCenterY+250,'UI/DroidSerif-Regular.ttf', 28)
+    tapSpeed=display.newText(uiGroup,'0 src/s',display.contentCenterX+70,display.contentCenterY+250,native.systemFont, 28)
     tapSpeed:setFillColor(  0.757, 0.757, 0.757,1 )
     speedText:setFillColor(  0.757, 0.757, 0.757,1 )
 
@@ -285,8 +288,11 @@ function scene:create( event )
 
     boxes=create_boxes()
     add_box_listeners(boxes,crashBox)
-
-
+    menuIcon:addEventListener('tap',gotoScores)
+    current_sprite=choise_sprite(boxes)
+    current_sprite[1].x=display.contentCenterX
+    current_sprite[1].y=display.contentCenterY
+    current_sprite[1].isVisible=true
 end
 
 
@@ -299,11 +305,7 @@ function scene:show( event )
 	if ( phase == "will" ) then
 
 	elseif ( phase == "did" ) then
-		current_sprite=choise_sprite(boxes)
-        current_sprite[1].x=display.contentCenterX
-        current_sprite[1].y=display.contentCenterY
-        current_sprite[1].isVisible=true
-        current_sprite[1].is_inital=false
+        scoreTimer=timer.performWithDelay( 1000, calcSpeed,-1 )
 
 
 
@@ -319,9 +321,10 @@ function scene:hide( event )
 
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is on screen (but is about to go off screen)
-
+         timer.cancel(scoreTimer)
 	elseif ( phase == "did" ) then
 		-- Code here runs immediately after the scene goes entirely off screen
+
 
 	end
 end
