@@ -1,7 +1,11 @@
 
---scene
+
 local composer = require( "composer" )
+local json = require( "json" )
+
+--scene
 local scene = composer.newScene()
+
 
 --inital state 
 local  state = 2
@@ -17,6 +21,7 @@ local tapText
 local tapSpeed
 local current_sprite
 local boxes
+local setting
 
 --display groups
 local backGroup 
@@ -246,6 +251,18 @@ local function add_box_listeners(sprites,callback)
 		end
 	end
 end
+
+local function read_settings()
+	local path = system.pathForFile( "gameData.json", system.DocumentsDirectory)
+	if setting ==nil then
+		file,errorString=io.open(path,'r')
+		if file then
+			local content=file:read( "*a" )
+			setting=json.decode(content)
+		end
+	end
+end
+
 --=============================================================================================
 --=======================================END OF GAME FUNCTIONS=================================
 --=============================================================================================
@@ -254,8 +271,7 @@ local function gotoScores()
 	composer.gotoScene("scores",{ time=700, effect="crossFade" })
 end
 
-function scene:create( event )
-
+function scene:create(event)
 	local sceneGroup = self.view
     --init display groups
 	backGroup = display.newGroup()
@@ -293,6 +309,9 @@ function scene:create( event )
     current_sprite[1].x=display.contentCenterX
     current_sprite[1].y=display.contentCenterY
     current_sprite[1].isVisible=true
+    --Turn read the settings
+    timer.performWithDelay(1000, read_settings,5)
+
 end
 
 
@@ -305,10 +324,7 @@ function scene:show( event )
 	if ( phase == "will" ) then
 
 	elseif ( phase == "did" ) then
-        scoreTimer=timer.performWithDelay( 1000, calcSpeed,-1 )
-
-
-
+        scoreTimer=timer.performWithDelay(1000, calcSpeed,-1)
 	end
 end
 
