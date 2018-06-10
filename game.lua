@@ -1,4 +1,4 @@
-
+local widget = require( "widget" )
 local composer = require( "composer" )
 local json = require( "json" )
 
@@ -14,17 +14,18 @@ local prevScores=0
 local busy=false 
 local changed=false
 local best=false
+local next_score=100
 
 --variables
 local sheet
 local crash_sound
 local crashed_sound
-local tapText
 local tapSpeed
-local targetScore
 local current_sprite
 local boxes
 local setting
+local scoreText
+local targetText
 
 --display groups
 local backGroup 
@@ -114,6 +115,13 @@ local sheetOptions={
    }
 }
 
+local progressOptions={
+	x=display.contentCenterX,
+	y=4,
+	width=200,
+	isAnimated=true
+}
+
 
 
 --===================================================================================
@@ -151,7 +159,13 @@ end
 --scores
 local function calcScores()
 	scores=scores+current_sprite[state].score
-	tapText.text=scores
+	scoreText.text=scores
+	if scores >= next_score then
+		next_score=scores+30
+		targetText.text=next_score
+	end
+	local progress=scores/next_score
+	progressView:setProgress(progress)
 	changed=true
 end
 
@@ -161,7 +175,7 @@ local function flyScores()
 	flyScore.x=display.contentCenterX-100
 	flyScore.y=display.contentCenterY-100
 	flyScore.isVisible=true
-	transition.to( flyScore, { x=display.contentCenterX+100,y=0, time=250,
+	transition.to( flyScore, { x=display.contentCenterX+50,y=40, time=250,
         onComplete = function() 
                          flyScore.isVisible=false
                          calcScores()
@@ -278,12 +292,11 @@ local function statCallback(event)
 		if (#response==0 and best~=true) then
             --Poput the best result - you got the best then opponetn score
 			best=true
-			targetScore.text=score
+			--BEST SCORE BAR!!!! 
 		else
 			best=false
-			print(response[1])
 			next_score=response[1].score
-			targetScore.text=next_score
+			targetText.text=next_score
 		end
 
 	end
@@ -326,23 +339,22 @@ function scene:create(event)
     background.y = display.contentCenterY
 
     local menuIcon=display.newImageRect(uiGroup,'UI/menu.png',79,61)
-    menuIcon.x=display.contentCenterX-100
-    menuIcon.y=5
+    menuIcon.x=display.contentCenterX+100
+    menuIcon.y=display.contentCenterY+240
+    local speedText=display.newText(uiGroup,'Speed Progress',display.contentCenterX,-20,'UI/DroidSerif-Regular.ttf', 25)
+    speedText:setFillColor(0.757, 0.757, 0.757,1)
 
-    local scoreText =display.newText(uiGroup,'Scores: ', display.contentCenterX+20, 0,'UI/DroidSerif-Regular.ttf', 28 )
-    tapText = display.newText(uiGroup, scores, display.contentCenterX+100, 0, 'UI/DroidSerif-Regular.ttf', 28 )
-    tapText:setFillColor( 0.757, 0.757, 0.757,1 )
-    scoreText:setFillColor(  0.757, 0.757, 0.757,1 )
+    progressView = widget.newProgressView(progressOptions)
+    scoreText=display.newText(uiGroup,scores,display.contentCenterX-100,18,'UI/DroidSerif-Regular.ttf',20)
+    scoreText:setFillColor(0.757, 0.757, 0.757,1)
 
+    targetText=display.newText(uiGroup,next_score,display.contentCenterX+100,18,'UI/DroidSerif-Regular.ttf',20)
+    targetText:setFillColor(0.757, 0.757, 0.757,1)
     local speedText=display.newText(uiGroup,'Speed: ',display.contentCenterX-20,display.contentCenterY+250,'UI/DroidSerif-Regular.ttf', 28)
     tapSpeed=display.newText(uiGroup,'0 src/s',display.contentCenterX+70,display.contentCenterY+250,native.systemFont, 28)
-    tapSpeed:setFillColor(  0.757, 0.757, 0.757,1 )
-    speedText:setFillColor(  0.757, 0.757, 0.757,1 )
+    tapSpeed:setFillColor(0.757, 0.757, 0.757,1)
+    speedText:setFillColor(0.757, 0.757, 0.757,1)
 
-    local targenScoreText=display.newText(uiGroup,'Target:' ,display.contentCenterX-20, display.contentCenterY+220,'UI/DroidSerif-Regular.ttf', 28)
-    targetScore=display.newText(uiGroup,'0',display.contentCenterX+70,display.contentCenterY+220,native.systemFont, 28)
-    targenScoreText:setFillColor(  0.757, 0.757, 0.757,1 )
-    targetScore:setFillColor(  0.757, 0.757, 0.757,1 )
 
     crash_sound = audio.loadSound( "audio/Crash.wav" )
     crashed_sound = audio.loadSound( "audio/crashed.wav" )
