@@ -12,6 +12,7 @@ local scores=0
 local speed = 0
 local prevScores=0
 local busy=false 
+local changed=false
 
 --variables
 local sheet
@@ -149,6 +150,7 @@ end
 local function calcScores()
 	scores=scores+current_sprite[state].score
 	tapText.text=scores
+	changed=true
 end
 
 --scores animation
@@ -268,17 +270,21 @@ local function catchNetError(event)
 	if event.isError then 
 		print(event.errorString)
 		--offlile mode screen
+	else
+		changed=false 
 	end
 end
 
 local  function putStatistic()
 	if settings~=nil then
-	    local params={}
-	    local headers= {}
-	    headers["Content-Type"] = "application/x-www-form-urlencoded"
-	    params.body='scores='..scores..'&speed='..speed
-	    params.headers=headers
-	    network.request("http://localhost:3000/api/scores/"..settings.id, "PUT", catchNetError ,params) 
+		if changed then 
+	        local params={}
+	        local headers= {}
+	        headers["Content-Type"] = "application/x-www-form-urlencoded"
+	        params.body='scores='..scores..'&speed='..speed
+	        params.headers=headers
+	        network.request("http://localhost:3000/api/scores/"..settings.id, "PUT", catchNetError ,params)
+	    end
 	else 
 		print('offline mode')
 	end
@@ -345,7 +351,7 @@ function scene:show( event )
 
 	elseif ( phase == "did" ) then
         scoreTimer=timer.performWithDelay(1000, calcSpeed,-1)
-        statisticTimer=timer.performWithDelay(10000,putStatistic,-1)
+        statisticTimer=timer.performWithDelay(6000,putStatistic,-1)
 	end
 end
 
