@@ -23,9 +23,10 @@ local function genName(event)
 		    file=nil
 		end
 	else 
-		print(errorString)
+		print(event.errorString)
 	end
-end
+end	
+
 
 --if File does not Exist Create file and user on the server
 if not file then

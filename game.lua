@@ -1,5 +1,4 @@
 
-
 local composer = require( "composer" )
 local json = require( "json" )
 
@@ -10,6 +9,7 @@ local scene = composer.newScene()
 --inital state 
 local  state = 2
 local scores=0
+local speed = 0
 local prevScores=0
 local busy=false 
 
@@ -169,8 +169,8 @@ end
 local function calcSpeed()
 	-- body
 	if prevScores>0  then
-		local src=scores-prevScores
-		tapSpeed.text=src..'src/s'
+		speed=scores-prevScores
+		tapSpeed.text=speed..'src/s'
 	end
 	prevScores=scores
 end 
@@ -254,15 +254,35 @@ end
 
 local function read_settings()
 	local path = system.pathForFile( "gameData.json", system.DocumentsDirectory)
-	if setting ==nil then
+	if settings ==nil then
 		file,errorString=io.open(path,'r')
 		if file then
 			local content=file:read( "*a" )
-			setting=json.decode(content)
+			settings=json.decode(content)
 		end
 	end
 end
 
+--backend functions
+local function catchNetError(event)
+	if event.isError then 
+		print(event.errorString)
+		--offlile mode screen
+	end
+end
+
+local  function putStatistic()
+	if settings~=nil then
+	    local params={}
+	    local headers= {}
+	    headers["Content-Type"] = "application/x-www-form-urlencoded"
+	    params.body='scores='..scores..'&speed='..speed
+	    params.headers=headers
+	    network.request("http://localhost:3000/api/scores/"..settings.id, "PUT", catchNetError ,params) 
+	else 
+		print('offline mode')
+	end
+end
 --=============================================================================================
 --=======================================END OF GAME FUNCTIONS=================================
 --=============================================================================================
@@ -325,6 +345,7 @@ function scene:show( event )
 
 	elseif ( phase == "did" ) then
         scoreTimer=timer.performWithDelay(1000, calcSpeed,-1)
+        statisticTimer=timer.performWithDelay(10000,putStatistic,-1)
 	end
 end
 
@@ -338,6 +359,7 @@ function scene:hide( event )
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is on screen (but is about to go off screen)
          timer.cancel(scoreTimer)
+         timer.cancel(statisticTimer)
 	elseif ( phase == "did" ) then
 		-- Code here runs immediately after the scene goes entirely off screen
 
