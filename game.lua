@@ -13,6 +13,7 @@ local speed = 0
 local prevScores=0
 local busy=false 
 local changed=false
+local best=false
 
 --variables
 local sheet
@@ -20,6 +21,7 @@ local crash_sound
 local crashed_sound
 local tapText
 local tapSpeed
+local targetScore
 local current_sprite
 local boxes
 local setting
@@ -266,12 +268,24 @@ local function read_settings()
 end
 
 --backend functions
-local function catchNetError(event)
+local function statCallback(event)
 	if event.isError then 
 		print(event.errorString)
 		--offlile mode screen
 	else
-		changed=false 
+		changed=false
+		local response=json.decode(event.response);
+		if (#response==0 and best~=true) then
+            --Poput the best result - you got the best then opponetn score
+			best=true
+			targetScore.text=score
+		else
+			best=false
+			print(response[1])
+			next_score=response[1].score
+			targetScore.text=next_score
+		end
+
 	end
 end
 
@@ -283,7 +297,7 @@ local  function putStatistic()
 	        headers["Content-Type"] = "application/x-www-form-urlencoded"
 	        params.body='scores='..scores..'&speed='..speed
 	        params.headers=headers
-	        network.request("http://localhost:3000/api/scores/"..settings.id, "PUT", catchNetError ,params)
+	        network.request("http://localhost:3000/api/scores/"..settings.id, "PUT",statCallback,params)
 	    end
 	else 
 		print('offline mode')
@@ -324,6 +338,11 @@ function scene:create(event)
     tapSpeed=display.newText(uiGroup,'0 src/s',display.contentCenterX+70,display.contentCenterY+250,native.systemFont, 28)
     tapSpeed:setFillColor(  0.757, 0.757, 0.757,1 )
     speedText:setFillColor(  0.757, 0.757, 0.757,1 )
+
+    local targenScoreText=display.newText(uiGroup,'Target:' ,display.contentCenterX-20, display.contentCenterY+220,'UI/DroidSerif-Regular.ttf', 28)
+    targetScore=display.newText(uiGroup,'0',display.contentCenterX+70,display.contentCenterY+220,native.systemFont, 28)
+    targenScoreText:setFillColor(  0.757, 0.757, 0.757,1 )
+    targetScore:setFillColor(  0.757, 0.757, 0.757,1 )
 
     crash_sound = audio.loadSound( "audio/Crash.wav" )
     crashed_sound = audio.loadSound( "audio/crashed.wav" )
