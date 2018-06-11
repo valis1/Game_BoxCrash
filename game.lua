@@ -117,7 +117,7 @@ local sheetOptions={
 
 local progressOptions={
 	x=display.contentCenterX,
-	y=4,
+	y=25,
 	width=200,
 	isAnimated=true
 }
@@ -161,8 +161,10 @@ local function calcScores()
 	scores=scores+current_sprite[state].score
 	scoreText.text=scores
 	if scores >= next_score then
-		next_score=scores+30
-		targetText.text=next_score
+		if best then
+		    next_score=scores+30
+		    targetText.text=next_score
+		end
 	end
 	local progress=scores/next_score
 	progressView:setProgress(progress)
@@ -290,9 +292,7 @@ local function statCallback(event)
 		changed=false
 		local response=json.decode(event.response);
 		if (#response==0 and best~=true) then
-            --Poput the best result - you got the best then opponetn score
 			best=true
-			--BEST SCORE BAR!!!! 
 		else
 			best=false
 			next_score=response[1].score
@@ -310,7 +310,7 @@ local  function putStatistic()
 	        headers["Content-Type"] = "application/x-www-form-urlencoded"
 	        params.body='scores='..scores..'&speed='..speed
 	        params.headers=headers
-	        network.request("http://localhost:3000/api/scores/"..settings.id, "PUT",statCallback,params)
+	        network.request("https://boxcrash.herokuapp.com/api/scores/"..settings.id, "PUT",statCallback,params)
 	    end
 	else 
 		print('offline mode')
@@ -341,14 +341,14 @@ function scene:create(event)
     local menuIcon=display.newImageRect(uiGroup,'UI/menu.png',79,61)
     menuIcon.x=display.contentCenterX+100
     menuIcon.y=display.contentCenterY+240
-    local speedText=display.newText(uiGroup,'Speed Progress',display.contentCenterX,-20,'UI/DroidSerif-Regular.ttf', 25)
+    local speedText=display.newText(uiGroup,'My Progress',display.contentCenterX,4,'UI/DroidSerif-Regular.ttf', 20)
     speedText:setFillColor(0.757, 0.757, 0.757,1)
 
     progressView = widget.newProgressView(progressOptions)
-    scoreText=display.newText(uiGroup,scores,display.contentCenterX-100,18,'UI/DroidSerif-Regular.ttf',20)
+    scoreText=display.newText(uiGroup,scores,display.contentCenterX-100,38,'UI/DroidSerif-Regular.ttf',20)
     scoreText:setFillColor(0.757, 0.757, 0.757,1)
 
-    targetText=display.newText(uiGroup,next_score,display.contentCenterX+100,18,'UI/DroidSerif-Regular.ttf',20)
+    targetText=display.newText(uiGroup,next_score,display.contentCenterX+100,38,'UI/DroidSerif-Regular.ttf',20)
     targetText:setFillColor(0.757, 0.757, 0.757,1)
     local speedText=display.newText(uiGroup,'Speed: ',display.contentCenterX-20,display.contentCenterY+250,'UI/DroidSerif-Regular.ttf', 28)
     tapSpeed=display.newText(uiGroup,'0 src/s',display.contentCenterX+70,display.contentCenterY+250,native.systemFont, 28)

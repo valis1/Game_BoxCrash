@@ -30,7 +30,7 @@ end
 
 --if File does not Exist Create file and user on the server
 if not file then
-    network.request("http://localhost:3000/api/scores", "POST", genName,params) 
+    network.request("https://boxcrash.herokuapp.com/api/scores", "POST", genName,params) 
 end
 
 
