@@ -23,9 +23,10 @@ local crashed_sound
 local tapSpeed
 local current_sprite
 local boxes
-local setting
+local settings
 local scoreText
 local targetText
+local systemSettings
 
 --display groups
 local backGroup 
@@ -122,6 +123,20 @@ local progressOptions={
 	isAnimated=true
 }
 
+--get system settings 
+local function getSystemSettings()
+	local path=system.pathForFile("settings.json")
+	local file,errorString=io.open(path,"r")
+	if file then
+		local content=file:read( "*a" )
+		io.close(file)
+		return json.decode(content)
+	else
+		return false
+	end
+end
+
+systemSettings=getSystemSettings()
 
 
 --===================================================================================
@@ -241,8 +256,8 @@ local function crashBox()
         state=state+1
         flyScores()
     elseif state==10 then
-    	audio.play(crashed_sound)
     	system.vibrate()
+    	audio.play(crashed_sound) 
 		state=1
 		busy=true
 		transition.to( sprite[8], { x=-100, time=350,
@@ -275,10 +290,11 @@ end
 local function read_settings()
 	local path = system.pathForFile( "gameData.json", system.DocumentsDirectory)
 	if settings ==nil then
-		file,errorString=io.open(path,'r')
+		local file,errorString=io.open(path,'r')
 		if file then
 			local content=file:read( "*a" )
 			settings=json.decode(content)
+			io.close(file)
 		end
 	end
 end
@@ -310,7 +326,7 @@ local  function putStatistic()
 	        headers["Content-Type"] = "application/x-www-form-urlencoded"
 	        params.body='scores='..scores..'&speed='..speed
 	        params.headers=headers
-	        network.request("https://boxcrash.herokuapp.com/api/scores/"..settings.id, "PUT",statCallback,params)
+	        network.request(systemSettings.server.."/api/scores/"..settings.id, "PUT",statCallback,params)
 	    end
 	else 
 		print('offline mode')
