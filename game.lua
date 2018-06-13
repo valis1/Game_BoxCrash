@@ -475,6 +475,7 @@ local function getMyScoresCallback(event)
 		local response= json.decode(event.response);
 		scores=tonumber(response.score)
 		scoreText.text=scores
+	end
 
 end
 --=============================================================================================
