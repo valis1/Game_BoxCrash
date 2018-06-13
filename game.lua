@@ -154,6 +154,95 @@ local scoresSheetOptions={frames={
     },
 }}
 
+local ballSheetOptions={
+	frames={
+	--inital Red Ball (1)
+	{
+	x=0,
+	y=0,
+	width=65,
+	height=96
+    },
+    --Rad Ball Crash 1 (2)
+    {
+	x=75,
+	y=0,
+	width=80,
+	height=97
+    },
+    --Rad Ball Crash 2 (3)
+    {
+	x=156,
+	y=0,
+	width=94,
+	height=124
+    },
+    --Rad Ball Final Crash (4)
+    {
+	x=263,
+	y=0,
+	width=93,
+	height=132
+    },
+    --inital Blue Ball (5)
+	{
+	x=0,
+	y=135,
+	width=65,
+	height=96
+    },
+    --Blue Ball Crash 1 (6)
+    {
+	x=75,
+	y=135,
+	width=80,
+	height=97
+    },
+    --Blue Ball Crash 2 (7)
+    {
+	x=156,
+	y=135,
+	width=94,
+	height=124
+    },
+    --Blue Ball Final Crash (8)
+    {
+	x=263,
+	y=135,
+	width=93,
+	height=132
+    },
+    --inital Green Ball (9)
+	{
+	x=0,
+	y=288,
+	width=65,
+	height=96
+    },
+    --Green Ball Crash 1 (10)
+    {
+	x=75,
+	y=288,
+	width=80,
+	height=97
+    },
+    --Green Ball Crash 2 (11)
+    {
+	x=156,
+	y=288,
+	width=94,
+	height=124
+    },
+    --Green Ball Final Crash (12)
+    {
+	x=263,
+	y=288,
+	width=93,
+	height=132
+    }
+   }
+} 
+
 local scoreSheet=graphics.newImageSheet('sheets/scores.png',scoresSheetOptions)
 
 local progressOptions={
@@ -375,6 +464,18 @@ local  function putStatistic()
 	else 
 		print('offline mode')
 	end
+end
+
+
+
+local function getMyScoresCallback(event)
+	if event.isError then
+		print(event.errorString) -- OFFLINE MODE SCREEN
+	else
+		local response= json.decode(event.response);
+		scores=tonumber(response.score)
+		scoreText.text=scores
+
 end
 --=============================================================================================
 --=======================================END OF GAME FUNCTIONS=================================
