@@ -218,9 +218,9 @@ local function flyScores(score)
 	local sprite_score={2,3,6}
 	local sprite=table.indexOf(sprite_score,score)
 	local flyScore=display.newImage(uiGroup,scoreSheet,sprite)
-	flyScore.x=display.contentCenterX-100
+	flyScore.x=display.contentCenterX+100
 	flyScore.y=display.contentCenterY-100
-	transition.to( flyScore, { x=display.contentCenterX+50,y=40, time=400,
+	transition.to( flyScore, { x=display.contentCenterX-70,y=40, time=400,
         onComplete = function() 
                          display.remove(flyScore)
                          flyScore=nil
