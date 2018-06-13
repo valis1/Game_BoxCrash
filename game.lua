@@ -105,16 +105,56 @@ local sheetOptions={
 	y=4,
 	width=168,
 	height=274
-    },
-    --score (11)
-    {
-	x=1454,
-	y=285,
-	width=47,
-	height=57
     }
    }
 }
+
+local scoresSheetOptions={frames={
+    --+2
+	{
+	x=0,
+	y=0,
+	width=20,
+	height=20
+    },
+    --+3
+    {
+	x=21,
+	y=0,
+	width=20,
+	height=20
+    },
+    --+6
+    {
+	x=43,
+	y=0,
+	width=20,
+	height=20
+    },
+    --+20
+    {
+	x=64,
+	y=0,
+	width=33,
+	height=20
+    },
+    --+30
+    {
+	x=98,
+	y=0,
+	width=33,
+	height=20
+    },
+    --+60
+    {
+	x=132,
+	y=0,
+	width=33,
+	height=20
+    },
+}}
+
+local scoreSheet=graphics.newImageSheet('sheets/scores.png',scoresSheetOptions)
 
 local progressOptions={
 	x=display.contentCenterX,
@@ -151,7 +191,7 @@ local function create_boxes()
     sheets[3]=graphics.newImageSheet('sheets/Level3BoxSheet.png',sheetOptions)
     local scores={2,3,6}
     for i =1,3 do
-    	for j=1,11 do
+    	for j=1,10 do
     		sprites[i][j]=display.newImage(mainGroup,sheets[i],j)
     		sprites[i][j].isVisible=false
     		sprites[i][j].score=scores[i]
@@ -171,9 +211,27 @@ local function choise_sprite(boxes)
 	return boxes[box_level]
 end 
 
+
+
+--scores animation
+local function flyScores(score)
+	local sprite_score={2,3,6}
+	local sprite=table.indexOf(sprite_score,score)
+	local flyScore=display.newImage(uiGroup,scoreSheet,sprite)
+	flyScore.x=display.contentCenterX-100
+	flyScore.y=display.contentCenterY-100
+	transition.to( flyScore, { x=display.contentCenterX+50,y=40, time=400,
+        onComplete = function() 
+                         display.remove(flyScore)
+                         flyScore=nil
+                     end
+        } )
+end
+
 --scores
 local function calcScores()
 	scores=scores+current_sprite[state].score
+	flyScores(current_sprite[state].score)
 	scoreText.text=scores
 	if scores >= next_score then
 		if best then
@@ -184,20 +242,6 @@ local function calcScores()
 	local progress=scores/next_score
 	progressView:setProgress(progress)
 	changed=true
-end
-
---scores animation
-local function flyScores()
-	local flyScore=current_sprite[11]
-	flyScore.x=display.contentCenterX-100
-	flyScore.y=display.contentCenterY-100
-	flyScore.isVisible=true
-	transition.to( flyScore, { x=display.contentCenterX+50,y=40, time=250,
-        onComplete = function() 
-                         flyScore.isVisible=false
-                         calcScores()
-                     end
-        } )
 end
 
 --speed calculation
@@ -222,7 +266,7 @@ local function crashBox()
         system.vibrate()
         if state~=1 then
             sprite[state-1].isVisible=false
-            flyScores()
+            calcScores()
         end
         sprite[state].isVisible=true
 		state=state+1
@@ -231,14 +275,14 @@ local function crashBox()
 		system.vibrate()
 		sprite[6].isVisible=false
 		sprite[5].isVisible=true
-		flyScores()
+		calcScores()
 		state=state+1
 	elseif state==8 then
         audio.play(crash_sound)
         system.vibrate()
 		sprite[5].isVisible=false
 		sprite[7].isVisible=true
-		flyScores()
+		calcScores()
 		state=state+1
 	elseif state==9 then
         sprite[7].isVisible=false
@@ -254,7 +298,7 @@ local function crashBox()
         sprite[9].isVisible=true
         sprite[10].isVisible=true
         state=state+1
-        flyScores()
+        calcScores()
     elseif state==10 then
     	system.vibrate()
     	audio.play(crashed_sound) 
@@ -274,7 +318,7 @@ local function crashBox()
 
                        end
         } )
-		flyScores()
+		calcScores()
 
 	end
 end
