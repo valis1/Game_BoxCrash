@@ -1,7 +1,9 @@
 local widget = require( "widget" )
 local composer = require( "composer" )
 local json = require( "json" )
-
+local physics = require( "physics" )
+physics.start()
+physics.setGravity( 0, 0 )
 --scene
 local scene = composer.newScene()
 
@@ -27,6 +29,7 @@ local settings
 local scoreText
 local targetText
 local systemSettings
+local balloonsTable
 
 --display groups
 local backGroup 
@@ -244,6 +247,7 @@ local ballSheetOptions={
 } 
 
 local scoreSheet=graphics.newImageSheet('sheets/scores.png',scoresSheetOptions)
+local balloonSheet = graphics.newImageSheet('sheets/balloonSheet.png',ballSheetOptions)
 
 local progressOptions={
 	x=display.contentCenterX,
@@ -303,12 +307,12 @@ end
 
 
 --scores animation
-local function flyScores(score)
+local function flyScores(score,x,y)
 	local sprite_score={2,3,6}
 	local sprite=table.indexOf(sprite_score,score)
 	local flyScore=display.newImage(uiGroup,scoreSheet,sprite)
-	flyScore.x=display.contentCenterX+100
-	flyScore.y=display.contentCenterY-100
+	flyScore.x=x or display.contentCenterX+100
+	flyScore.y=y or display.contentCenterY-100
 	transition.to( flyScore, { x=display.contentCenterX-70,y=40, time=400,
         onComplete = function() 
                          display.remove(flyScore)
@@ -420,16 +424,32 @@ local function add_box_listeners(sprites,callback)
 	end
 end
 
-local function read_settings()
-	local path = system.pathForFile( "gameData.json", system.DocumentsDirectory)
-	if settings ==nil then
-		local file,errorString=io.open(path,'r')
-		if file then
-			local content=file:read( "*a" )
-			settings=json.decode(content)
-			io.close(file)
+local function crashBall()
+
+end 
+
+local function createBall(level) --1,5,9
+	--probability distribution
+	local odds={0,0,0,0,0,0,20,20,20,20,20,20,0,0,0,30,30,30,30,60,60}
+	local x = math.random(#odds)
+	local score=odds[x]
+	local position
+	if x~=0 then
+		if score==20 then
+			position=1
+		elseif score==30 then
+			position=5
+		else
+			position=9
 		end
-	end
+		local newBall = display.newImage(mainGroup,balloonSheet,position)
+		newBall.score=score
+		newBall:addEventListener('tap',crashBall)
+		newBall.x=20
+		newBall.y=600
+		physics.addBody( newBall, "dynamic", { radius=90, bounce=0.8 } )
+		table.insert(balloonsTable,newBall)
+
 end
 
 --backend functions
@@ -467,7 +487,6 @@ local  function putStatistic()
 end
 
 
-
 local function getMyScoresCallback(event)
 	if event.isError then
 		print(event.errorString) -- OFFLINE MODE SCREEN
@@ -475,9 +494,25 @@ local function getMyScoresCallback(event)
 		local response= json.decode(event.response);
 		scores=tonumber(response.score)
 		scoreText.text=scores
+		changed=true
+		putStatistic()
 	end
 
 end
+
+local function read_settings()
+	local path = system.pathForFile( "gameData.json", system.DocumentsDirectory)
+	if settings ==nil then
+		local file,errorString=io.open(path,'r')
+		if file then
+			local content=file:read( "*a" )
+			settings=json.decode(content)
+			io.close(file)
+			network.request(systemSettings.server.."/api/scores/"..settings.id, "GET",getMyScoresCallback)
+		end
+	end
+end
+
 --=============================================================================================
 --=======================================END OF GAME FUNCTIONS=================================
 --=============================================================================================
@@ -530,7 +565,6 @@ function scene:create(event)
     current_sprite[1].isVisible=true
     --Turn read the settings
     timer.performWithDelay(1000, read_settings,5)
-
 end
 
 
@@ -545,6 +579,7 @@ function scene:show( event )
 	elseif ( phase == "did" ) then
         scoreTimer=timer.performWithDelay(1000, calcSpeed,-1)
         statisticTimer=timer.performWithDelay(6000,putStatistic,-1)
+        physics.start()
 	end
 end
 
@@ -561,6 +596,7 @@ function scene:hide( event )
          timer.cancel(statisticTimer)
 	elseif ( phase == "did" ) then
 		-- Code here runs immediately after the scene goes entirely off screen
+		 physics.pause()
 
 
 	end
