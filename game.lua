@@ -17,11 +17,14 @@ local busy=false
 local changed=false
 local best=false
 local next_score=100
+local balloonsTable={}
+
 
 --variables
 local sheet
 local crash_sound
 local crashed_sound
+local ballonCrash
 local tapSpeed
 local current_sprite
 local boxes
@@ -29,11 +32,11 @@ local settings
 local scoreText
 local targetText
 local systemSettings
-local balloonsTable
 
 --display groups
 local backGroup 
-local mainGroup 
+local mainGroup
+local ballonGroup 
 local uiGroup 
 
 
@@ -246,6 +249,27 @@ local ballSheetOptions={
    }
 } 
 
+local crashBallSequences = {
+    {
+        name = "RedBall",
+        frames = {1,2,3,4},
+        time = 300,
+        loopCount = 1
+    },
+    {
+        name = "BlueBall",
+        frames = {5,6,7,8},
+        time = 300,
+        loopCount = 1
+    },
+    {
+        name = "GreenBall",
+        frames = {9,10,11,12},
+        time = 300,
+        loopCount = 1
+    },
+}
+
 local scoreSheet=graphics.newImageSheet('sheets/scores.png',scoresSheetOptions)
 local balloonSheet = graphics.newImageSheet('sheets/balloonSheet.png',ballSheetOptions)
 
@@ -308,7 +332,7 @@ end
 
 --scores animation
 local function flyScores(score,x,y)
-	local sprite_score={2,3,6}
+	local sprite_score={2,3,6,20,30,60}
 	local sprite=table.indexOf(sprite_score,score)
 	local flyScore=display.newImage(uiGroup,scoreSheet,sprite)
 	flyScore.x=x or display.contentCenterX+100
@@ -322,13 +346,13 @@ local function flyScores(score,x,y)
 end
 
 --scores
-local function calcScores()
-	scores=scores+current_sprite[state].score
-	flyScores(current_sprite[state].score)
+local function calcScores(score,x,y)
+	scores=scores+score
+	flyScores(score,x,y)
 	scoreText.text=scores
 	if scores >= next_score then
 		if best then
-		    next_score=scores+30
+		    next_score=scores+math.floor((scores/100)*20)
 		    targetText.text=next_score
 		end
 	end
@@ -342,7 +366,6 @@ local function calcSpeed()
 	-- body
 	if prevScores>0  then
 		speed=scores-prevScores
-		tapSpeed.text=speed..'src/s'
 	end
 	prevScores=scores
 end 
@@ -359,7 +382,7 @@ local function crashBox()
         system.vibrate()
         if state~=1 then
             sprite[state-1].isVisible=false
-            calcScores()
+            calcScores(sprite[state].score)
         end
         sprite[state].isVisible=true
 		state=state+1
@@ -368,14 +391,14 @@ local function crashBox()
 		system.vibrate()
 		sprite[6].isVisible=false
 		sprite[5].isVisible=true
-		calcScores()
+		calcScores(sprite[state].score)
 		state=state+1
 	elseif state==8 then
         audio.play(crash_sound)
         system.vibrate()
 		sprite[5].isVisible=false
 		sprite[7].isVisible=true
-		calcScores()
+		calcScores(sprite[state].score)
 		state=state+1
 	elseif state==9 then
         sprite[7].isVisible=false
@@ -391,7 +414,7 @@ local function crashBox()
         sprite[9].isVisible=true
         sprite[10].isVisible=true
         state=state+1
-        calcScores()
+        calcScores(sprite[state].score)
     elseif state==10 then
     	system.vibrate()
     	audio.play(crashed_sound) 
@@ -411,7 +434,7 @@ local function crashBox()
 
                        end
         } )
-		calcScores()
+		calcScores(sprite[state].score)
 
 	end
 end
@@ -424,31 +447,48 @@ local function add_box_listeners(sprites,callback)
 	end
 end
 
-local function crashBall()
+local function crashBall(event)
+   local thisSprite=event.target
+   audio.play(ballonCrash)
+   thisSprite:play()
+   calcScores(thisSprite.score,thisSprite.x,thisSprite.y)
 
 end 
+local function destroyBall(event)
+	local thisSprite = event.target 
+	if  event.phase == "ended" then 
+	    local ind=table.indexOf(balloonsTable,thisSprite)
+	    display.remove(thisSprite)
+	    table.remove(balloonsTable,ind)
+	end
+end
 
-local function createBall(level) --1,5,9
+local function createBall() --1,5,9
 	--probability distribution
-	local odds={0,0,0,0,0,0,20,20,20,20,20,20,0,0,0,30,30,30,30,60,60}
+	local odds={0,0,0,0,0,0,0,0,20,20,20,20,20,20,30,30,30,30,60,60}
 	local x = math.random(#odds)
 	local score=odds[x]
-	local position
-	if x~=0 then
+	local seq
+	if score~=0 then
 		if score==20 then
-			position=1
+            seq='RedBall'
 		elseif score==30 then
-			position=5
+			seq='BlueBall'
 		else
-			position=9
+			seq='GreenBall'
 		end
-		local newBall = display.newImage(mainGroup,balloonSheet,position)
+		local newBall = display.newSprite(ballonGroup,balloonSheet,crashBallSequences)
 		newBall.score=score
+		newBall.alpha=0.7
 		newBall:addEventListener('tap',crashBall)
-		newBall.x=20
-		newBall.y=600
+		newBall:addEventListener( "sprite", destroyBall )
+		newBall:setSequence(seq)
+		newBall.x=math.random(30,160)
+		newBall.y=500
 		physics.addBody( newBall, "dynamic", { radius=90, bounce=0.8 } )
+		newBall:setLinearVelocity(math.random(9,15),math.random(-90,-40))
 		table.insert(balloonsTable,newBall)
+	end
 
 end
 
@@ -460,7 +500,7 @@ local function statCallback(event)
 	else
 		changed=false
 		local response=json.decode(event.response);
-		if (#response==0 and best~=true) then
+		if (#response==0) then
 			best=true
 		else
 			best=false
@@ -492,8 +532,12 @@ local function getMyScoresCallback(event)
 		print(event.errorString) -- OFFLINE MODE SCREEN
 	else
 		local response= json.decode(event.response);
-		scores=tonumber(response.score)
+		scores=scores+tonumber(response.score)
+		next_score=scores+math.floor((scores/100)*20)
 		scoreText.text=scores
+		targetText.text=next_score
+		local progress=scores/next_score
+	    progressView:setProgress(progress)
 		changed=true
 		putStatistic()
 	end
@@ -513,6 +557,22 @@ local function read_settings()
 	end
 end
 
+local function gameLoop()
+	createBall()
+	putStatistic()
+    --cleenup balls
+	for i = #balloonsTable, 1, -1 do
+		local ball=balloonsTable[i]
+		if ball.x>=display.contentCenterY-100 then
+			display.remove(ball)
+			table.remove(balloonsTable,i)
+		end
+	end
+end 
+
+local function exit()
+	os.exit()
+end 
 --=============================================================================================
 --=======================================END OF GAME FUNCTIONS=================================
 --=============================================================================================
@@ -528,6 +588,8 @@ function scene:create(event)
 	sceneGroup:insert(backGroup)
 	mainGroup =display.newGroup()
 	sceneGroup:insert(mainGroup)
+	ballonGroup=display.newGroup()
+	sceneGroup:insert(ballonGroup)
 	uiGroup =display.newGroup()
 	sceneGroup:insert(uiGroup)
 
@@ -535,9 +597,14 @@ function scene:create(event)
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    local menuIcon=display.newImageRect(uiGroup,'UI/menu.png',79,61)
-    menuIcon.x=display.contentCenterX+100
+    local menuIcon=display.newImageRect(uiGroup,'UI/menu.png',94,42)
+    menuIcon.x=display.contentCenterX-100
     menuIcon.y=display.contentCenterY+240
+
+    local menuExitIcon=display.newImageRect(uiGroup,'UI/menuExit.png',94,42)
+    menuExitIcon.x=display.contentCenterX+100
+    menuExitIcon.y=display.contentCenterY+240
+
     local speedText=display.newText(uiGroup,'My Progress',display.contentCenterX,4,'UI/DroidSerif-Regular.ttf', 20)
     speedText:setFillColor(0.757, 0.757, 0.757,1)
 
@@ -547,14 +614,12 @@ function scene:create(event)
 
     targetText=display.newText(uiGroup,next_score,display.contentCenterX+100,38,'UI/DroidSerif-Regular.ttf',20)
     targetText:setFillColor(0.757, 0.757, 0.757,1)
-    local speedText=display.newText(uiGroup,'Speed: ',display.contentCenterX-20,display.contentCenterY+250,'UI/DroidSerif-Regular.ttf', 28)
-    tapSpeed=display.newText(uiGroup,'0 src/s',display.contentCenterX+70,display.contentCenterY+250,native.systemFont, 28)
-    tapSpeed:setFillColor(0.757, 0.757, 0.757,1)
-    speedText:setFillColor(0.757, 0.757, 0.757,1)
+
 
 
     crash_sound = audio.loadSound( "audio/Crash.wav" )
     crashed_sound = audio.loadSound( "audio/crashed.wav" )
+    ballonCrash=audio.loadSound("audio/Ballon.wav")
 
     boxes=create_boxes()
     add_box_listeners(boxes,crashBox)
@@ -578,8 +643,9 @@ function scene:show( event )
 
 	elseif ( phase == "did" ) then
         scoreTimer=timer.performWithDelay(1000, calcSpeed,-1)
-        statisticTimer=timer.performWithDelay(6000,putStatistic,-1)
+        gameLoopTimer=timer.performWithDelay(5000,gameLoop,-1)
         physics.start()
+        progressView.isVisible=true
 	end
 end
 
@@ -593,7 +659,8 @@ function scene:hide( event )
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is on screen (but is about to go off screen)
          timer.cancel(scoreTimer)
-         timer.cancel(statisticTimer)
+         timer.cancel(gameLoopTimer)
+         progressView.isVisible=false
 	elseif ( phase == "did" ) then
 		-- Code here runs immediately after the scene goes entirely off screen
 		 physics.pause()
