@@ -49,10 +49,10 @@ end
 settings=getSettings()
 if not settings then
 	local alert = native.showAlert( "Error", "Can`t load settings", { "Exit"},compleateAlert)
-end
---if File does not Exist Create file and user on the server
-if not file then
-    network.request(settins.server.."/api/scores", "POST", genName,params) 
+else
+    if not file then
+        network.request(settings.server.."/api/scores", "POST", genName,params) 
+    end
 end
 
 composer.gotoScene( "game" )
