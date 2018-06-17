@@ -7,6 +7,17 @@ local top={}
 local url
 local path = system.pathForFile( "gameData.json", system.DocumentsDirectory)
 local progressText
+local scoreTable
+
+local tableOptions={
+        x = display.contentCenterX,
+        y = display.contentCenterY,
+        height = 330,
+        width = 300,
+        onRowRender = onRowRender,
+        onRowTouch = onRowTouch,
+        listener = scrollListener
+    }
 
 local scene = composer.newScene()
 
@@ -16,6 +27,16 @@ end
 
 local function exit()
 	os.exit()
+end
+--sort function
+local function compare(a,b)
+  return a.score < b.score
+end
+
+function update_table()
+    for k,v in pairs(top) do
+        scoreTable:insertRow{v.nick,v.score}
+    end
 end
 
 function getStatisticCallbackTwo(event)
@@ -30,11 +51,13 @@ function getStatisticCallbackTwo(event)
          for k,v in pairs(response) do
             table.insert(top,v)
         end
+        table.sort(top,compare)
+        update_table()
     end
 end
 
 
-function getStatisticCallbackOne(event)
+local function getStatisticCallbackOne(event)
     if event.isError then
         progressText.text="Can`t connect the sever"
         progressText.isVisible=true
@@ -51,7 +74,7 @@ function getStatisticCallbackOne(event)
 end
 
 
-function scene:create( event )
+ function scene:create( event )
 
     myId=event.params.id
     url=event.params.url
@@ -77,9 +100,11 @@ function scene:create( event )
     BackButton:addEventListener( "tap", gotoGame)
     ExitButton:addEventListener('tap',exit)
 
+    scoreTable = widget.newTableView(tableOptions)
+
 end
 
-function scene:show( event )
+ function scene:show( event )
 
     local sceneGroup = self.view
     local phase = event.phase
@@ -91,7 +116,20 @@ function scene:show( event )
     end
 end
 
+
+ function scene:hide( event )
+
+    local sceneGroup = self.view
+    local phase = event.phase
+
+    if ( phase == "will" ) then
+         scoreTable.isVisible=false
+    elseif ( phase == "did" ) then
+    end
+end
+
 scene:addEventListener( "create", scene )
 scene:addEventListener( "show", scene )
+scene:addEventListener("hide",scene)
 
 return scene

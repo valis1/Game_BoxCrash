@@ -569,7 +569,7 @@ local function gotoScores()
 	composer.gotoScene("scores",{ time=700, effect="crossFade",params={id=settings.id,url=systemSettings.server} })
 end
 
-function scene:create(event)
+ function scene:create(event)
 	local sceneGroup = self.view
 	systemSettings=event.params.settings
     --init display groups
@@ -623,7 +623,7 @@ end
 
 
 -- show()
-function scene:show( event )
+ function scene:show( event )
 
 	local sceneGroup = self.view
 	local phase = event.phase
@@ -640,7 +640,7 @@ end
 
 
 -- hide()
-function scene:hide( event )
+ function scene:hide( event )
 
 	local sceneGroup = self.view
 	local phase = event.phase
