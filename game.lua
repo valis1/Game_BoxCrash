@@ -618,7 +618,7 @@ function scene:create(event)
     current_sprite[1].y=display.contentCenterY
     current_sprite[1].isVisible=true
     --Turn read the settings
-    timer.performWithDelay(1000, read_settings,5)
+    read_settings()
 end
 
 

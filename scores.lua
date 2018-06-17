@@ -16,9 +16,9 @@ end
 
 local function exit()
 	os.exit()
-end 
+end
 
-function getStatisticCallback(event)
+function getStatisticCallbackTwo(event)
     if event.isError then
         progressText.text="Can`t connect the sever"
         progressText.isVisible=true
@@ -27,6 +27,26 @@ function getStatisticCallback(event)
         progressText.isVisible=true
     elseif (event.phase=="ended") then
          local response= json.decode(event.response)
+         for k,v in pairs(response) do
+            table.insert(top,v)
+        end
+    end
+end
+
+
+function getStatisticCallbackOne(event)
+    if event.isError then
+        progressText.text="Can`t connect the sever"
+        progressText.isVisible=true
+    elseif (event.phase == "began" or event.phase == "progress") then
+        progressText.text="Loading..."
+        progressText.isVisible=true
+    elseif (event.phase=="ended") then
+         local response= json.decode(event.response)
+         for k,v in pairs(response) do
+            table.insert(top,v)
+        end
+        network.request(url.."/api/reports/statistic/down/"..myId, "GET",getStatisticCallbackTwo)
     end
 end
 
@@ -67,8 +87,7 @@ function scene:show( event )
     if ( phase == "will" ) then
 
     elseif ( phase == "did" ) then
-        network.request(url.."/api/reports/statistic/"..myId, "GET",getStatisticCallback)
-        print(url.."api/reports/statistic/"..myId)
+        network.request(url.."/api/reports/statistic/up/"..myId, "GET",getStatisticCallbackOne)
     end
 end
 
