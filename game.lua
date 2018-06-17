@@ -280,22 +280,6 @@ local progressOptions={
 	isAnimated=true
 }
 
---get system settings 
-local function getSystemSettings()
-	local path=system.pathForFile("settings.json")
-	local file,errorString=io.open(path,"r")
-	if file then
-		local content=file:read( "*a" )
-		io.close(file)
-		return json.decode(content)
-	else
-		return false
-	end
-end
-
-systemSettings=getSystemSettings()
-
-
 --===================================================================================
 --=================================GAME FUNCTIONS====================================
 --===================================================================================
@@ -338,7 +322,7 @@ local function flyScores(score,x,y)
 	flyScore.x=x or display.contentCenterX+100
 	flyScore.y=y or display.contentCenterY-100
 	transition.to( flyScore, { x=display.contentCenterX-70,y=40, time=400,
-        onComplete = function() 
+            onComplete = function() 
                          display.remove(flyScore)
                          flyScore=nil
                      end
@@ -502,9 +486,16 @@ local function statCallback(event)
 		local response=json.decode(event.response);
 		if (#response==0) then
 			best=true
+			next_score=scores+math.floor((scores/100)*20)
+		    targetText.text=next_score
+		    local progress=scores/next_score
+	        progressView:setProgress(progress)
+
 		else
 			best=false
 			next_score=response[1].score
+			local progress=scores/next_score
+	        progressView:setProgress(progress)
 			targetText.text=next_score
 		end
 
@@ -536,12 +527,9 @@ local function getMyScoresCallback(event)
 		next_score=scores+math.floor((scores/100)*20)
 		scoreText.text=scores
 		targetText.text=next_score
-		local progress=scores/next_score
-	    progressView:setProgress(progress)
 		changed=true
 		putStatistic()
 	end
-
 end
 
 local function read_settings()
@@ -578,11 +566,12 @@ end
 --=============================================================================================
 
 local function gotoScores()
-	composer.gotoScene("scores",{ time=700, effect="crossFade" })
+	composer.gotoScene("scores",{ time=700, effect="crossFade",params={id=settings.id,url=systemSettings.server} })
 end
 
 function scene:create(event)
 	local sceneGroup = self.view
+	systemSettings=event.params.settings
     --init display groups
 	backGroup = display.newGroup()
 	sceneGroup:insert(backGroup)

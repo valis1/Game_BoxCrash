@@ -55,4 +55,4 @@ else
     end
 end
 
-composer.gotoScene( "game" )
+composer.gotoScene( "game",{params={settings=settings}} )
