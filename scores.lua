@@ -8,16 +8,43 @@ local url
 local path = system.pathForFile( "gameData.json", system.DocumentsDirectory)
 local progressText
 local scoreTable
+local inital=true
+
+
+local function onRowRender( event )
+   local row = event.row
+   local id = row.index
+   row.nameText = display.newText( top[id].nick, 12, 0, 'UI/DroidSerif-Regular.ttf', 18 )
+   row.nameText.anchorX = 0
+   row.nameText.anchorY = 0
+   row.nameText:setFillColor(0.757, 0.757, 0.757,1)
+   row.nameText.y = 20
+   row.nameText.x = 42
+
+   row.scoreText = display.newText( top[id].score, 12, 0,'UI/DroidSerif-Regular.ttf', 18 )
+   row.scoreText.anchorX = 0
+   row.scoreText.anchorY = 0
+   row.scoreText:setFillColor( 0.757, 0.757, 0.757,1)
+   row.scoreText.y = 20
+   row.scoreText.x = 230
+
+   row:insert( row.nameText )
+   row:insert( row.scoreText )
+   return true
+end
 
 local tableOptions={
-        x = display.contentCenterX,
-        y = display.contentCenterY,
-        height = 330,
-        width = 300,
-        onRowRender = onRowRender,
-        onRowTouch = onRowTouch,
-        listener = scrollListener
-    }
+   top = 60, 
+   width = display.contentWidth, 
+   height = display.contentHeight - 60 - 50,
+   onRowRender = onRowRender,
+   onRowTouch = onRowTouch,
+   listener = scrollListener,
+   hideBackground =true
+}
+    
+
+
 
 local scene = composer.newScene()
 
@@ -33,9 +60,25 @@ local function compare(a,b)
   return a.score < b.score
 end
 
-function update_table()
-    for k,v in pairs(top) do
-        scoreTable:insertRow{v.nick,v.score}
+function createTable()
+    --it`s bad idea 
+    local usedId={}
+    for i=1,#top do
+        local cat=false
+        local color= { default={ 0.349, 0.341, 0.757, 0.1}, over={ 0.12, 0, 0.51, 0.1} }
+        if not table.indexOf(usedId,top[i]._id) then
+            if top[i]._id==myId then
+                cat=true
+                color= { default={ 0.349, 0.341, 0.757, 0.9}, over={ 0.12, 0, 0.51, 0.8} }
+            end
+            scoreTable:insertRow{ 
+                rowHeight = 60,
+                isCategory = cat,
+                rowColor =color,
+                lineColor = { 0.349, 0.341, 0.757,0.5}
+            }
+        end
+        table.insert(usedId,top[i]._id)
     end
 end
 
@@ -52,7 +95,13 @@ function getStatisticCallbackTwo(event)
             table.insert(top,v)
         end
         table.sort(top,compare)
-        update_table()
+        if inital then
+            inital=false
+            createTable()
+        else
+            scoreTable:reloadData()
+            scoreTable.isVisible=true
+        end
     end
 end
 
@@ -84,9 +133,7 @@ end
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    local label = display.newImageRect(sceneGroup, "UI/Label.png", 240, 75 )
-    label.x = display.contentCenterX
-    label.y = 30
+
 
     progressText=display.newText(sceneGroup,"Loading...",display.contentCenterX, display.contentCenterY, 'UI/DroidSerif-Regular.ttf', 22)
     progressText:setFillColor(0.757, 0.757, 0.757,1)
@@ -101,7 +148,6 @@ end
     ExitButton:addEventListener('tap',exit)
 
     scoreTable = widget.newTableView(tableOptions)
-
 end
 
  function scene:show( event )
@@ -110,9 +156,8 @@ end
     local phase = event.phase
 
     if ( phase == "will" ) then
-
-    elseif ( phase == "did" ) then
         network.request(url.."/api/reports/statistic/up/"..myId, "GET",getStatisticCallbackOne)
+    elseif ( phase == "did" ) then
     end
 end
 

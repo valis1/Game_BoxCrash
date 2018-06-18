@@ -321,7 +321,7 @@ local function flyScores(score,x,y)
 	local flyScore=display.newImage(uiGroup,scoreSheet,sprite)
 	flyScore.x=x or display.contentCenterX+100
 	flyScore.y=y or display.contentCenterY-100
-	transition.to( flyScore, { x=display.contentCenterX-70,y=40, time=400,
+	transition.to( flyScore, { x=display.contentCenterX-70,y=40, time=700,
             onComplete = function() 
                          display.remove(flyScore)
                          flyScore=nil
@@ -485,20 +485,35 @@ local function statCallback(event)
 		changed=false
 		local response=json.decode(event.response);
 		if (#response==0) then
+			local progress
 			best=true
-			next_score=scores+math.floor((scores/100)*20)
+			if scores >0 then
+			    next_score=scores+math.floor((scores/100)*20)
+			    local progress=scores/next_score
+            else 
+            	next_score=100
+            	progress=0
+            end
 		    targetText.text=next_score
-		    local progress=scores/next_score
 	        progressView:setProgress(progress)
-
 		else
 			best=false
 			next_score=response[1].score
-			local progress=scores/next_score
-	        progressView:setProgress(progress)
+			local progress
+			if scores==0 and next_score==0 then
+				next_score=100
+				progress=0
+			elseif scores>0 and next_score==0 then
+				next_score=scores+math.floor((scores/100)*20)
+				progress=0.8
+			elseif scores==0 and next_score>0 then
+				progress=0
+			else
+				progress=scores/next_score
+            end
+		    progressView:setProgress(progress)
 			targetText.text=next_score
 		end
-
 	end
 end
 
