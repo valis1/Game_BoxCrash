@@ -57,28 +57,26 @@ local function exit()
 end
 --sort function
 local function compare(a,b)
-  return a.score < b.score
+  return a.score > b.score
 end
 
 function createTable()
     --it`s bad idea 
     local usedId={}
     for i=1,#top do
-        local cat=false
         local color= { default={ 0.349, 0.341, 0.757, 0.1}, over={ 0.12, 0, 0.51, 0.1} }
-        if not table.indexOf(usedId,top[i]._id) then
+        if  (not table.indexOf(usedId,top[i]._id)) then
             if top[i]._id==myId then
-                cat=true
                 color= { default={ 0.349, 0.341, 0.757, 0.9}, over={ 0.12, 0, 0.51, 0.8} }
             end
             scoreTable:insertRow{ 
                 rowHeight = 60,
-                isCategory = cat,
+                isCategory = false,
                 rowColor =color,
                 lineColor = { 0.349, 0.341, 0.757,0.5}
             }
+            table.insert(usedId,top[i]._id)
         end
-        table.insert(usedId,top[i]._id)
     end
 end
 
@@ -87,19 +85,23 @@ function getStatisticCallbackTwo(event)
         progressText.text="Can`t connect the sever"
         progressText.isVisible=true
     elseif (event.phase == "began" or event.phase == "progress") then
-        progressText.text="Loading..."
-        progressText.isVisible=true
+
     elseif (event.phase=="ended") then
+         progressText.isVisible=false
          local response= json.decode(event.response)
          for k,v in pairs(response) do
             table.insert(top,v)
+        end
+        for k,v in pairs(top) do
+            print(v._id)
         end
         table.sort(top,compare)
         if inital then
             inital=false
             createTable()
         else
-            scoreTable:reloadData()
+            scoreTable:deleteAllRows()
+            createTable()
             scoreTable.isVisible=true
         end
     end
@@ -111,9 +113,9 @@ local function getStatisticCallbackOne(event)
         progressText.text="Can`t connect the sever"
         progressText.isVisible=true
     elseif (event.phase == "began" or event.phase == "progress") then
-        progressText.text="Loading..."
-        progressText.isVisible=true
+
     elseif (event.phase=="ended") then
+         top={}
          local response= json.decode(event.response)
          for k,v in pairs(response) do
             table.insert(top,v)
@@ -124,10 +126,9 @@ end
 
 
  function scene:create( event )
-
     myId=event.params.id
     url=event.params.url
-
+    print(myId)
 	local sceneGroup = self.view
     local background = display.newImageRect(sceneGroup, "UI/BackgroundMenu.png", 360, 570 )
     background.x = display.contentCenterX
@@ -158,6 +159,8 @@ end
     if ( phase == "will" ) then
         network.request(url.."/api/reports/statistic/up/"..myId, "GET",getStatisticCallbackOne)
     elseif ( phase == "did" ) then
+        progressText.text="Loading..."
+        progressText.isVisible=true
     end
 end
 

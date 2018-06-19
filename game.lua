@@ -489,7 +489,7 @@ local function statCallback(event)
 			best=true
 			if scores >0 then
 			    next_score=scores+math.floor((scores/100)*20)
-			    local progress=scores/next_score
+			    progress=scores/next_score
             else 
             	next_score=100
             	progress=0
