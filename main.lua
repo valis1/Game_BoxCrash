@@ -2,14 +2,9 @@ local composer = require( "composer" )
 local json = require( "json" )
 
 --request params
-local params = {}
 local settings
-local body = "model="..system.getInfo("model")
-params.body = body
 
---file params 
-local path = system.pathForFile( "gameData.json", system.DocumentsDirectory)
-local file, errorString = io.open(path, "r")
+
 
 --get system settings 
 local function getSettings()
@@ -32,27 +27,10 @@ end
 
 display.setStatusBar( display.HiddenStatusBar )
 
-local function genName(event)
-	if not event.isError then
-		local response = json.decode(event.response)
-		local file,errorString=io.open(path,'w')
-		if  file then
-		    file:write(json.encode({id=response['_id'] ,nick=response['nick']}))
-		    io.close(file)
-		    file=nil
-		end
-	else 
-		print(event.errorString)
-	end
-end	
+
 
 settings=getSettings()
 if not settings then
 	local alert = native.showAlert( "Error", "Can`t load settings", { "Exit"},compleateAlert)
-else
-    if not file then
-        network.request(settings.server.."/api/scores", "POST", genName,params) 
-    end
 end
-
 composer.gotoScene( "game",{params={settings=settings}} )

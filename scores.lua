@@ -9,6 +9,8 @@ local path = system.pathForFile( "gameData.json", system.DocumentsDirectory)
 local progressText
 local scoreTable
 local inital=true
+local params = {}
+params['timeout']=5
 
 
 local function onRowRender( event )
@@ -139,7 +141,7 @@ local function getStatisticCallbackOne(event)
          for k,v in pairs(response) do
             table.insert(top,v)
         end
-        network.request(url.."/api/reports/statistic/down/"..myId, "GET",getStatisticCallbackTwo)
+        network.request(url.."/api/reports/statistic/down/"..myId, "GET",getStatisticCallbackTwo,params)
     end
 end
 
@@ -176,7 +178,7 @@ end
     local phase = event.phase
 
     if ( phase == "will" ) then
-        network.request(url.."/api/reports/statistic/up/"..myId, "GET",getStatisticCallbackOne)
+        network.request(url.."/api/reports/statistic/up/"..myId, "GET",getStatisticCallbackOne,params)
     elseif ( phase == "did" ) then
         progressText.text="Загрузка..."
         progressText.isVisible=true
