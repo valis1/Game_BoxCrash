@@ -609,8 +609,15 @@ end
     menuExitIcon.x=display.contentCenterX+100
     menuExitIcon.y=display.contentCenterY+240
 
-    local speedText=display.newText(uiGroup,'My Progress',display.contentCenterX,4,'UI/DroidSerif-Regular.ttf', 20)
-    speedText:setFillColor(0.757, 0.757, 0.757,1)
+    local progText=display.newText(uiGroup,'Прогресс',display.contentCenterX,-10,'UI/DroidSerif-Regular.ttf', 20)
+    progText:setFillColor(0.757, 0.757, 0.757,1)
+
+    local myMenuScoreText=display.newText(uiGroup,'Я',60,10,'UI/DroidSerif-Regular.ttf', 20)
+    myMenuScoreText:setFillColor(0.757, 0.757, 0.757,1)
+
+    local opponentMenuScoreText=display.newText(uiGroup,'Враг',display.contentCenterX+100,10,'UI/DroidSerif-Regular.ttf', 20)
+    opponentMenuScoreText:setFillColor(0.757, 0.757, 0.757,1)
+
 
     progressView = widget.newProgressView(progressOptions)
     scoreText=display.newText(uiGroup,scores,display.contentCenterX-100,38,'UI/DroidSerif-Regular.ttf',20)
@@ -618,8 +625,6 @@ end
 
     targetText=display.newText(uiGroup,next_score,display.contentCenterX+100,38,'UI/DroidSerif-Regular.ttf',20)
     targetText:setFillColor(0.757, 0.757, 0.757,1)
-
-
 
     crash_sound = audio.loadSound( "audio/Crash.wav" )
     crashed_sound = audio.loadSound( "audio/crashed.wav" )

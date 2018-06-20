@@ -15,8 +15,8 @@ local function onRowRender( event )
    local row = event.row
    local id = row.index
    local params = event.row.params
-
-   row.nameText = display.newText( params.name, 12, 0, 'UI/DroidSerif-Regular.ttf', 18 )
+   local name =  params.name
+   row.nameText = display.newText( name, 12, 0, 'UI/DroidSerif-Regular.ttf', 18 )
    row.nameText.anchorX = 0
    row.nameText.anchorY = 0
    row.nameText:setFillColor(0.757, 0.757, 0.757,1)
@@ -30,15 +30,26 @@ local function onRowRender( event )
    row.scoreText.y = 20
    row.scoreText.x = 230
 
+   if params.isMe then
+      row.isMeText = display.newText( 'Мой игрок:', 12, 0,'UI/DroidSerif-Regular.ttf', 15 )
+      row.isMeText.anchorX = 0
+      row.isMeText.anchorY = 0
+      row.isMeText:setFillColor( 0.757, 0.757, 0.757,1)
+      row.isMeText.y = 12
+      row.nameText.y = 30
+      row.isMeText.x = 42
+      row:insert( row.isMeText )
+   end
+
    row:insert( row.nameText )
    row:insert( row.scoreText )
    return true
 end
 
 local tableOptions={
-   top = 60, 
+   top = 40, 
    width = display.contentWidth, 
-   height = display.contentHeight - 60 - 50,
+   height = display.contentHeight - 70,
    onRowRender = onRowRender,
    onRowTouch = onRowTouch,
    listener = scrollListener,
@@ -65,7 +76,7 @@ end
 function createTable()
     --it`s bad idea 
     local usedId={}
-    local isMe
+    local isMe=false
     for i=1,#top do
         local color= { default={ 0.349, 0.341, 0.757, 0.1}, over={ 0.12, 0, 0.51, 0.1} }
         if (table.indexOf(usedId,top[i]._id) ==nil) then
@@ -84,6 +95,7 @@ function createTable()
                      isMe=isMe
                 }
             }
+            isMe=false
             table.insert(usedId,top[i]._id)
         end
     end
@@ -101,9 +113,7 @@ function getStatisticCallbackTwo(event)
          for k,v in pairs(response) do
             table.insert(top,v)
         end
-        for k,v in pairs(top) do
-            print(v._id)
-        end
+
         table.sort(top,compare)
         if inital then
             inital=false
@@ -137,21 +147,21 @@ end
  function scene:create( event )
     myId=event.params.id
     url=event.params.url
-    print(myId)
 	local sceneGroup = self.view
     local background = display.newImageRect(sceneGroup, "UI/BackgroundMenu.png", 360, 570 )
     background.x = display.contentCenterX
     background.y = display.contentCenterY
+    
+    local welcomeText= display.newText(sceneGroup,"Таблица лидеров",display.contentCenterX, 10, 'UI/DroidSerif-Regular.ttf', 26)
+    welcomeText:setFillColor(0.757, 0.757, 0.757,1)
 
-
-
-    progressText=display.newText(sceneGroup,"Loading...",display.contentCenterX, display.contentCenterY, 'UI/DroidSerif-Regular.ttf', 22)
+    progressText=display.newText(sceneGroup,"Загрузка...",display.contentCenterX, display.contentCenterY, 'UI/DroidSerif-Regular.ttf', 22)
     progressText:setFillColor(0.757, 0.757, 0.757,1)
     progressText.isVisible=false
 
-    local BackButton = display.newText( sceneGroup, "Back Game", display.contentCenterX-75, display.contentCenterY+250, 'UI/DroidSerif-Regular.ttf', 22 )
+    local BackButton = display.newText( sceneGroup, "В игру", display.contentCenterX-75, display.contentCenterY+250, 'UI/DroidSerif-Regular.ttf', 22 )
     BackButton:setFillColor(0.757, 0.757, 0.757,1)
-    local ExitButton = display.newText( sceneGroup, "Exit Game", display.contentCenterX+75, display.contentCenterY+250, 'UI/DroidSerif-Regular.ttf', 22 )
+    local ExitButton = display.newText( sceneGroup, "Выйти", display.contentCenterX+75, display.contentCenterY+250, 'UI/DroidSerif-Regular.ttf', 22 )
     ExitButton:setFillColor(0.757, 0.757, 0.757,1)
 
     BackButton:addEventListener( "tap", gotoGame)
@@ -168,7 +178,7 @@ end
     if ( phase == "will" ) then
         network.request(url.."/api/reports/statistic/up/"..myId, "GET",getStatisticCallbackOne)
     elseif ( phase == "did" ) then
-        progressText.text="Loading..."
+        progressText.text="Загрузка..."
         progressText.isVisible=true
     end
 end
