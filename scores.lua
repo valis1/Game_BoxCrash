@@ -14,14 +14,16 @@ local inital=true
 local function onRowRender( event )
    local row = event.row
    local id = row.index
-   row.nameText = display.newText( top[id].nick, 12, 0, 'UI/DroidSerif-Regular.ttf', 18 )
+   local params = event.row.params
+
+   row.nameText = display.newText( params.name, 12, 0, 'UI/DroidSerif-Regular.ttf', 18 )
    row.nameText.anchorX = 0
    row.nameText.anchorY = 0
    row.nameText:setFillColor(0.757, 0.757, 0.757,1)
    row.nameText.y = 20
    row.nameText.x = 42
 
-   row.scoreText = display.newText( top[id].score, 12, 0,'UI/DroidSerif-Regular.ttf', 18 )
+   row.scoreText = display.newText( params.score, 12, 0,'UI/DroidSerif-Regular.ttf', 18 )
    row.scoreText.anchorX = 0
    row.scoreText.anchorY = 0
    row.scoreText:setFillColor( 0.757, 0.757, 0.757,1)
@@ -63,17 +65,24 @@ end
 function createTable()
     --it`s bad idea 
     local usedId={}
+    local isMe
     for i=1,#top do
         local color= { default={ 0.349, 0.341, 0.757, 0.1}, over={ 0.12, 0, 0.51, 0.1} }
-        if  (not table.indexOf(usedId,top[i]._id)) then
+        if (table.indexOf(usedId,top[i]._id) ==nil) then
             if top[i]._id==myId then
                 color= { default={ 0.349, 0.341, 0.757, 0.9}, over={ 0.12, 0, 0.51, 0.8} }
+                isMe=true
             end
             scoreTable:insertRow{ 
                 rowHeight = 60,
                 isCategory = false,
                 rowColor =color,
-                lineColor = { 0.349, 0.341, 0.757,0.5}
+                lineColor = { 0.349, 0.341, 0.757,0.5},
+                params = {
+                     name = top[i].nick,
+                     score = top[i].score,
+                     isMe=isMe
+                }
             }
             table.insert(usedId,top[i]._id)
         end
