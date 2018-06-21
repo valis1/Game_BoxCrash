@@ -121,7 +121,6 @@ function getStatisticCallbackTwo(event)
             inital=false
             createTable()
         else
-            scoreTable:deleteAllRows()
             createTable()
             scoreTable.isVisible=true
         end
@@ -178,10 +177,11 @@ end
     local phase = event.phase
 
     if ( phase == "will" ) then
-        network.request(url.."/api/reports/statistic/up/"..myId, "GET",getStatisticCallbackOne,params)
-    elseif ( phase == "did" ) then
+        scoreTable:deleteAllRows()
         progressText.text="Загрузка..."
         progressText.isVisible=true
+        network.request(url.."/api/reports/statistic/up/"..myId, "GET",getStatisticCallbackOne,params)
+    elseif ( phase == "did" ) then
     end
 end
 

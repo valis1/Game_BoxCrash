@@ -366,8 +366,18 @@ local function gameLoop()
 	end
 end 
 
+local function compleateExitAlert(event)
+	if ( event.action == "clicked" ) then
+        local i = event.index
+        if ( i == 1 ) then
+            os.exit()
+        elseif ( i == 2 ) then
+        end
+    end
+end 
+
 local function exit()
-	os.exit()
+	local alert = native.showAlert( "Выход", "Хотите выйти?", { "Да","Нет"},compleateExitAlert)
 end 
 --=============================================================================================
 --=======================================END OF GAME FUNCTIONS=================================
@@ -417,7 +427,6 @@ end
     local opponentMenuScoreText=display.newText(uiGroup,'Враг',display.contentCenterX+100,10,'UI/DroidSerif-Regular.ttf', 20)
     opponentMenuScoreText:setFillColor(0.757, 0.757, 0.757,1)
 
-
     progressView = widget.newProgressView(progressOptions)
     scoreText=display.newText(uiGroup,scores,display.contentCenterX-100,38,'UI/DroidSerif-Regular.ttf',20)
     scoreText:setFillColor(0.757, 0.757, 0.757,1)
@@ -432,6 +441,7 @@ end
     boxes=create_boxes()
     add_box_listeners(boxes,crashBox)
     menuIcon:addEventListener('tap',gotoScores)
+    menuExitIcon:addEventListener('tap',exit)
     current_sprite=choise_sprite(boxes)
     current_sprite[1].x=display.contentCenterX
     current_sprite[1].y=display.contentCenterY
