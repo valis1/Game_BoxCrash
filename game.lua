@@ -8,7 +8,6 @@ physics.setGravity( 0, 0 )
 --scene
 local scene = composer.newScene()
 
-
 --inital state 
 local  state = 2
 local scores=0
@@ -18,6 +17,7 @@ local busy=false
 local changed=false
 local best=false
 local next_score=100
+local busy=false
 local balloonsTable={}
 local settings
 
@@ -41,7 +41,7 @@ local mainGroup
 local ballonGroup 
 local uiGroup 
 
-
+--loading sheet`s options
 local sheetOptions=spriteSet.sheetOptions
 local scoresSheetOptions=spriteSet.scoresSheetOptions
 local ballSheetOptions=spriteSet.ballSheetOptions
@@ -87,6 +87,7 @@ local function choise_sprite(boxes)
 	local box_level=distr[x]
 	return boxes[box_level]
 end 
+
 --scores animation
 local function flyScores(score,x,y)
 	local sprite_score={2,3,6,20,30,60}
@@ -101,6 +102,7 @@ local function flyScores(score,x,y)
                      end
         } )
 end
+
 --scores
 local function calcScores(score,x,y)
 	scores=scores+score
@@ -116,6 +118,7 @@ local function calcScores(score,x,y)
 	progressView:setProgress(progress)
 	changed=true
 end
+
 --speed calculation
 local function calcSpeed()
 	-- body
@@ -124,6 +127,7 @@ local function calcSpeed()
 	end
 	prevScores=scores
 end 
+
 --BIG DADDY!!!
 local function crashBox()
 	if busy then
@@ -246,6 +250,7 @@ local function createBall() --1,5,9
 
 end
 --backend functions
+
 local function statCallback(event)
 	if event.isError then 
 		print(event.errorString)
@@ -310,7 +315,6 @@ local function getMyScoresCallback(event)
 		scoreText.text=scores
 		targetText.text=next_score
 		changed=true
-		putStatistic()
 	end
 end
 
@@ -335,7 +339,7 @@ local function read_settings()
 	local params = {}
 	local body = "model="..system.getInfo("model")
     params.body = body
-	if settings ==nil then
+	if settings == nil then
 		local file,errorString=io.open(path,'r')
 		if file then
 			local content=file:read( "*a" )
